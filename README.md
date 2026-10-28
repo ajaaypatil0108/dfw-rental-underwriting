@@ -31,7 +31,7 @@ Ajay Patil · MS Finance, The University of Texas at Dallas · Data: Zillow ZHVI
 | File | Description |
 |---|---|
 | [`DFW_Rental_Underwriting_Model.xlsx`](DFW_Rental_Underwriting_Model.xlsx) | The full workbook: ZIP screen, assumptions, sensitivity tables, 360-month amortization, 10-year pro forma, and the Zillow data |
-| [`DFW_Rental_Underwriting_Model.pdf`](DFW_Rental_Underwriting_Model.pdf) | 3-page case study covering method, results, and recommendation |
+| [`DFW_Rental_Underwriting_Model.pdf`](DFW_Rental_Underwriting_Model.pdf) | 9-page case study deck covering the screen, the pro forma, and the verdict |
 | [`docs/`](docs/) | Source for the project website (GitHub Pages) |
 
 **Workbook sheets**
