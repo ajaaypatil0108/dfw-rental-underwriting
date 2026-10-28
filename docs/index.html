@@ -4,243 +4,401 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DFW Rental Underwriting Model · Ajay Patil</title>
-<meta name="description" content="A screen-then-underwrite study of the Dallas–Fort Worth single-family rental market: ZIP-code screen and 10-year pro forma in Excel + Power Query.">
+<meta name="description" content="Screen-then-underwrite study of the Dallas–Fort Worth single-family rental market: a ZIP-code screen and 10-year pro forma built in Excel and Power Query.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #1d2945; --red: #b3261e; --ink: #1b1f27; --muted: #5f6673; --line: #d9dde4;
-    --bg: #ffffff; --soft: #f4f6f9; --green: #e3f1e3; --amber: #fdf3d8; --pink: #fbe3e1;
+    --bg: #0C1012; --surf: #13191B; --surf2: #1A2124; --line: #263034;
+    --text: #EDF2F0; --muted: #98A5A6; --dim: #6E7B7D;
+    --teal: #2EC4A6; --teal2: #8FE3D2;
+    --red: #F0605A; --rose: #F59C95; --amber: #F2B544; --green: #4CC38A;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-  header.hero { background: var(--navy); color: #fff; border-left: 6px solid var(--red); }
-  header.hero .wrap { padding-top: 36px; padding-bottom: 32px; }
-  .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #c9d1e3; font-weight: 700; }
-  h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 8px 0 8px; }
-  .sub { color: #dfe4ee; margin: 0 0 6px; }
-  .by { color: #b9c2d6; font-size: 14px; margin: 0; }
-  .verdict { display: inline-block; margin-top: 18px; background: var(--red); color: #fff; font-weight: 700;
-             padding: 6px 14px; border-radius: 6px; letter-spacing: .03em; }
-  .btns { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
-  .btn { color: #fff; text-decoration: none; border: 1px solid #8592ad; padding: 8px 14px; border-radius: 6px; font-size: 14px; }
-  .btn:hover { background: rgba(255,255,255,.08); }
-  .headline { background: var(--soft); border-left: 4px solid var(--red); padding: 16px 18px; margin: 28px 0 20px; }
-  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .kpi { padding: 14px 6px; text-align: center; border-right: 1px solid var(--line); }
-  .kpi:last-child { border-right: 0; }
-  .kpi .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .kpi .v { font-size: 24px; font-weight: 700; color: var(--navy); }
-  .kpi .v.bad { color: var(--red); }
-  h2 { color: var(--navy); font-size: 24px; margin: 44px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-  h3 { color: var(--navy); font-size: 17px; margin: 22px 0 4px; }
-  h3 span { color: var(--red); }
-  .funnel { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; gap: 6px; margin: 12px 0 4px; }
-  .step { background: var(--navy); color: #fff; text-align: center; padding: 10px 6px; border-radius: 6px; }
-  .step.last { background: var(--red); }
-  .step b { display: block; font-size: 24px; }
-  .step small { color: #dfe4ee; font-size: 12px; }
-  .arrow { color: var(--red); font-weight: 700; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--teal2); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 10; background: rgba(12,16,18,.86); backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
+  .brand { font-weight: 700; font-size: 14px; color: var(--text); text-decoration: none; white-space: nowrap; }
+  .brand span { color: var(--teal); }
+  .links { display: flex; gap: 22px; font-size: 13.5px; }
+  .links a { color: var(--muted); text-decoration: none; }
+  .links a:hover { color: var(--text); }
+
+  /* hero */
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero::before { content: ""; position: absolute; inset: 0;
+    background: radial-gradient(600px 380px at 78% 18%, rgba(46,196,166,.18), transparent 70%),
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px) 0 0/48px 48px,
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px) 0 0/48px 48px; }
+  .hero .wrap { position: relative; padding-top: 64px; padding-bottom: 56px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--muted);
+          border: 1px solid var(--line); background: var(--surf); border-radius: 999px; padding: 6px 12px; }
+  .pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+  h1 { font-size: clamp(38px, 7vw, 68px); line-height: 1.02; letter-spacing: -.035em; font-weight: 800; margin: 22px 0 18px; }
+  h1 .grad { background: linear-gradient(90deg, var(--teal), var(--teal2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead { color: var(--muted); font-size: 18px; max-width: 640px; margin: 0 0 26px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text);
+         text-decoration: none; background: var(--surf); border: 1px solid var(--line); border-radius: 8px; padding: 11px 16px; }
+  .btn:hover { border-color: #3a464b; }
+  .btn.primary { background: var(--teal); border-color: var(--teal); color: #06231d; }
+  .by { color: var(--dim); font-size: 13px; margin-top: 22px; }
+  .verdict { display: inline-block; margin-left: 10px; font-size: 12px; font-weight: 700; letter-spacing: .06em;
+             color: #fff; background: var(--red); border-radius: 6px; padding: 4px 10px; vertical-align: middle; }
+
+  /* kpis */
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 40px; }
+  .kpi { background: var(--surf); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .kpi b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+  .kpi span { color: var(--muted); font-size: 12.5px; }
+  .kpi.hot { border-color: rgba(240,96,90,.55); background: linear-gradient(180deg, rgba(240,96,90,.12), var(--surf)); }
+  .neg { color: var(--red); }
+
+  /* sections */
+  section { padding: 72px 0 8px; }
+  .eyebrow { display: flex; align-items: center; gap: 12px; font-size: 11.5px; font-weight: 700; letter-spacing: .14em;
+             text-transform: uppercase; color: var(--muted); }
+  .eyebrow b { color: var(--teal); }
+  .eyebrow i { width: 34px; height: 1px; background: var(--line); }
+  h2 { font-size: clamp(28px, 4.4vw, 40px); line-height: 1.12; letter-spacing: -.03em; font-weight: 800; margin: 12px 0 10px; }
+  h2 em { font-style: normal; color: var(--teal); }
+  h2 em.r { color: var(--red); }
+  .sub { color: var(--muted); max-width: 680px; margin: 0 0 26px; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { background: var(--surf); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 20px; }
+  .card .big { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 8px; }
+  .card p { color: var(--muted); margin: 0; font-size: 14.5px; }
+  .card.hot { border-color: rgba(240,96,90,.5); background: linear-gradient(160deg, rgba(240,96,90,.12), var(--surf) 60%); }
+  .card.wide { grid-column: 1 / -1; }
+
+  /* chart */
+  .panel { background: var(--surf); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin-top: 14px; }
+  .panel-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .panel-h b { font-size: 15px; } .panel-h span { color: var(--dim); font-size: 12.5px; }
+  .chart { position: relative; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .chart .bar { fill: var(--red); }
+  .chart .bar:hover, .chart .bar.on { fill: var(--rose); }
+  .tip { position: absolute; pointer-events: none; background: #0A0D0F; border: 1px solid var(--line); border-radius: 8px;
+         padding: 7px 10px; font-size: 12.5px; white-space: nowrap; opacity: 0; transition: opacity .1s; }
+  .tip b { display: block; font-size: 14px; }
+  .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+  .mini { background: var(--surf2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .mini span { color: var(--muted); font-size: 12px; display: block; } .mini b { font-size: 20px; }
+
+  /* funnel + tables */
+  .funnel { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 8px; align-items: center; margin-bottom: 22px; }
+  .fstep { background: var(--surf); border: 1px solid var(--line); border-radius: 12px; padding: 14px; text-align: center; }
+  .fstep b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .fstep span { color: var(--muted); font-size: 12.5px; }
+  .fstep.on { border-color: var(--teal); background: linear-gradient(180deg, rgba(46,196,166,.14), var(--surf)); }
+  .farrow { color: var(--dim); }
   .scroll { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
-  th { background: var(--navy); color: #fff; font-weight: 700; padding: 8px 10px; text-align: left; }
-  td { padding: 7px 10px; border-bottom: 1px solid var(--line); }
-  tr.pick td { background: var(--pink); font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+       padding: 10px 12px; border-bottom: 1px solid #3a464b; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; }
-  .two th.red { background: var(--red); }
-  .note { color: var(--muted); font-size: 13.5px; }
+  tr.pick td { background: rgba(46,196,166,.10); font-weight: 700; }
+  tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--teal); }
+  .tag { font-size: 11px; font-weight: 700; color: #06231d; background: var(--teal); border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 24px; }
+  .chip { background: var(--surf); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 500; }
+  .chip.k { border-color: var(--teal); color: var(--teal2); }
+  .flow .a { color: var(--dim); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .kv { background: var(--surf); border: 1px solid var(--line); border-radius: 14px; padding: 6px 4px 4px; }
+  .kv h4 { margin: 12px 14px 4px; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--teal); }
+  .kv.r h4 { color: var(--red); }
+  .kv td:first-child { color: var(--muted); } .kv td:last-child { font-weight: 600; text-align: right; }
+  .kv tr:last-child td { border-bottom: 0; }
+  .note { color: var(--dim); font-size: 13px; margin-top: 12px; }
+
+  /* heat grid */
   .grid td, .grid th { text-align: center; }
-  .grid td.p { background: var(--navy); color: #fff; font-weight: 700; text-align: left; }
-  .g { background: var(--green); font-weight: 700; } .a { background: var(--amber); } .n { background: var(--pink); }
-  .base { background: var(--red); color: #fff; font-weight: 700; }
-  ul.find { list-style: none; padding: 0; }
-  ul.find li { border-left: 4px solid var(--red); padding: 2px 0 2px 14px; margin: 0 0 14px; }
-  footer { border-top: 1px solid var(--line); margin-top: 48px; padding: 20px 0 40px; color: var(--muted); font-size: 14px; }
-  a { color: #2f5597; }
-  @media (max-width: 720px) {
+  .grid th:first-child, .grid td:first-child { text-align: left; }
+  .grid td { font-variant-numeric: tabular-nums; border: 2px solid var(--bg); }
+  .grid td:first-child { font-weight: 600; color: var(--muted); }
+  .g { background: rgba(76,195,138,.20); color: #bdf0d4; font-weight: 700; }
+  .a { background: rgba(242,181,68,.10); }
+  .n { background: rgba(240,96,90,.13); color: var(--rose); }
+  .base { background: var(--red); color: #fff; font-weight: 800; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .verdict-box { background: linear-gradient(160deg, rgba(240,96,90,.14), var(--surf) 55%); border: 1px solid rgba(240,96,90,.45);
+                 border-radius: 16px; padding: 26px; }
+  .verdict-box p { margin: 0 0 12px; } .verdict-box p:last-child { margin: 0; }
+  ul.dem { list-style: none; padding: 0; margin: 18px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  ul.dem li { background: var(--surf); border: 1px solid var(--line); border-radius: 14px; padding: 18px; color: var(--muted); font-size: 14.5px; }
+  ul.dem li b { color: var(--text); display: block; margin-bottom: 4px; }
+
+  .dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .dl a { display: block; text-decoration: none; color: var(--text); background: var(--surf); border: 1px solid var(--line);
+          border-radius: 14px; padding: 20px; }
+  .dl a:hover { border-color: var(--teal); }
+  .dl small { display: block; color: var(--teal); font-weight: 700; font-size: 11.5px; letter-spacing: .1em; margin-bottom: 6px; }
+  .dl span { color: var(--muted); font-size: 14px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 80px; padding: 28px 0 48px; color: var(--dim); font-size: 13.5px; }
+  footer p { margin: 0 0 8px; }
+
+  @media (max-width: 860px) {
+    .links { display: none; }
     .kpis { grid-template-columns: repeat(3, 1fr); }
-    .kpi:nth-child(3) { border-right: 0; }
-    .kpi:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
-    .two { grid-template-columns: 1fr; }
-    .funnel { grid-template-columns: 1fr; }
-    .arrow { text-align: center; transform: rotate(90deg); }
+    .cards, .two, .dl, ul.dem { grid-template-columns: 1fr; }
+    .funnel { grid-template-columns: 1fr 1fr; } .farrow { display: none; }
+    .stats3 { grid-template-columns: 1fr; }
+    .verdict { display: table; margin: 8px 0 0; }
   }
 </style>
 </head>
 <body>
-<header class="hero">
+
+<nav>
   <div class="wrap">
-    <div class="eyebrow">Real-estate underwriting · Portfolio case study</div>
-    <h1>DFW Rental Underwriting Model</h1>
-    <p class="sub">A screen-then-underwrite study of the Dallas–Fort Worth single-family rental market</p>
-    <p class="by">Ajay Patil · Excel + Power Query · Data: Zillow ZHVI &amp; ZORI (June 2026)</p>
-    <div class="verdict">VERDICT: PASS AT 7%</div>
+    <a class="brand" href="#top"><span>76110</span> · Underwriting Case Study</a>
+    <div class="links">
+      <a href="#findings">Findings</a><a href="#screen">Screen</a><a href="#model">Model</a>
+      <a href="#sensitivity">Sensitivity</a><a href="#verdict">Verdict</a><a href="#downloads">Downloads</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="pill"><i></i>Dallas–Fort Worth · Single-family rental · Zillow ZHVI &amp; ZORI, June 2026</div>
+    <h1>DFW Rental<br>Underwriting Model<br><span class="grad">Screen. Underwrite. Pass.</span></h1>
+    <p class="lead">A ZIP-code screen of the DFW rental market and a full 10-year pro forma on the best pick, built in Excel and
+    Power Query to answer one question: at today’s prices and a 7% mortgage, does a rental earn a return?</p>
     <div class="btns">
-      <a class="btn" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.pdf">Case study (PDF)</a>
-      <a class="btn" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.xlsx">Workbook (Excel)</a>
-      <a class="btn" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting">GitHub repository</a>
+      <a class="btn primary" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.xlsx">↓ Download the Excel model</a>
+      <a class="btn" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.pdf">Case study PDF</a>
+      <a class="btn" href="https://github.com/ajaaypatil0108/dfw-rental-underwriting">View on GitHub</a>
+    </div>
+    <div class="by">Ajay Patil · MS Finance, The University of Texas at Dallas <span class="verdict">VERDICT: PASS AT 7%</span></div>
+
+    <div class="kpis">
+      <div class="kpi"><b>4.3%</b><span>Entry cap rate</span></div>
+      <div class="kpi hot"><b class="neg">1.1%</b><span>Levered IRR, 10-yr</span></div>
+      <div class="kpi"><b>5.0%</b><span>Unlevered IRR</span></div>
+      <div class="kpi"><b>1.10x</b><span>Equity multiple</span></div>
+      <div class="kpi"><b class="neg">–6.1%</b><span>Cash-on-cash, Yr 1</span></div>
+      <div class="kpi"><b class="neg">0.71</b><span>DSCR, Yr 1</span></div>
     </div>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="headline">
-    <b>The headline.</b> 76110 Fort Worth, the strongest risk-adjusted pick of 166 ranked ZIPs, returns just
-    <b>1.1% levered IRR</b> at a 7% mortgage, <i>below</i> its own 5.0% all-cash return. Cash flow is negative every year,
-    DSCR never reaches 1.0, and rents would need to be about 23% higher to break even. The disciplined call is to
-    <b>pass</b>: the deal clears an 8% levered hurdle only if the price falls about 15% (to ~$185K) at 7%, or about 10%
-    (to ~$196K) with a 5–6% mortgage.
-  </div>
 
-  <div class="kpis">
-    <div class="kpi"><div class="l">Entry cap</div><div class="v">4.3%</div></div>
-    <div class="kpi"><div class="l">Levered IRR</div><div class="v bad">1.1%</div></div>
-    <div class="kpi"><div class="l">Unlevered IRR</div><div class="v">5.0%</div></div>
-    <div class="kpi"><div class="l">Equity mult.</div><div class="v">1.10x</div></div>
-    <div class="kpi"><div class="l">CoC · Yr 1</div><div class="v bad">–6.1%</div></div>
-    <div class="kpi"><div class="l">DSCR · Yr 1</div><div class="v bad">0.71</div></div>
-  </div>
+  <section id="findings">
+    <div class="eyebrow"><b>01</b><i></i>Key findings</div>
+    <h2>Borrowing makes it worse. <em class="r">At 7%, the deal doesn’t pencil.</em></h2>
+    <p class="sub">76110 Fort Worth is the strongest risk-adjusted pick of 166 ranked ZIPs, and it still returns less with a
+    mortgage than without one.</p>
+    <div class="cards">
+      <div class="card hot"><div class="big neg">1.1% vs 5.0%</div><h3>Negative leverage</h3>
+        <p>The asset yields about 4.3% unlevered, but the debt costs 7%. Financing it cuts the 10-year IRR from 5.0% all-cash to 1.1% levered.</p></div>
+      <div class="card"><div class="big neg">0.71 → 0.93</div><h3>The mortgage is never covered</h3>
+        <p>DSCR stays below 1.0 for all ten years. Lenders typically require 1.20 or more, so this wouldn’t qualify for standard investment financing.</p></div>
+      <div class="card"><div class="big" style="color:var(--amber)">~52% of NOI</div><h3>Texas property-tax drag</h3>
+        <p>At the full 2.24% non-homestead rate, Year-1 tax is $4,878: the largest expense (46% of OpEx) and the main reason a 9.6% gross yield shrinks to a 4.3% cap rate.</p></div>
+      <div class="card"><div class="big">~$2,144/mo</div><h3>Breakeven rent, 23% above today</h3>
+        <p>Year-1 cash flow reaches zero only at about $2,144/mo, versus $1,744 actual. Exiting at the entry cap instead of 5.0% lifts levered IRR to only ~5.1%.</p></div>
+    </div>
 
-  <h2>Objective</h2>
-  <p>I built an end-to-end model that underwrites a single-family rental in Dallas–Fort Worth and answers one question
-  honestly: <b>at today’s prices and a 7% mortgage, does buying a rental actually earn a return?</b> It computes
-  investment-return math (cap rate, NOI, DSCR, cash-on-cash, levered and unlevered IRR, and equity multiple) over a full
-  10-year hold.</p>
-  <p>The design has two layers. First it <b>screens</b> the DFW ZIP universe on rental economics to find the most promising
-  submarket. Then it <b>underwrites</b> that ZIP in depth with a 10-year pro forma, a 360-month amortization schedule, two
-  sensitivity tables, and a cap-rate exit. One constraint applies throughout: no manufactured returns. If the honest answer
-  is “pass,” that is the finding.</p>
+    <div class="panel">
+      <div class="panel-h"><b>Levered cash flow before tax, by year</b><span>$ per year · excludes Year-10 sale proceeds</span></div>
+      <div class="chart" id="cf">
+        <svg viewBox="0 0 960 300" role="img" aria-label="Bar chart: annual levered cash flow is negative in every year, from minus $3,718 in Year 1 to minus $877 in Year 10."></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <div class="stats3">
+        <div class="mini"><span>Year-1 cash flow</span><b class="neg">–$3,718</b></div>
+        <div class="mini"><span>Year-10 cash flow</span><b class="neg">–$877</b></div>
+        <div class="mini"><span>Net sale proceeds, Year 10</span><b>$92,838</b></div>
+      </div>
+    </div>
+  </section>
 
-  <h2>Methodology</h2>
-  <p class="note">The data funnel is itself a finding: rent coverage is thinner than price coverage.</p>
-  <div class="funnel">
-    <div class="step"><b>254</b><small>ZIPs with home values (ZHVI)</small></div><div class="arrow">→</div>
-    <div class="step"><b>220</b><small>ZIPs with rents (ZORI)</small></div><div class="arrow">→</div>
-    <div class="step"><b>216</b><small>with both, screenable</small></div><div class="arrow">→</div>
-    <div class="step last"><b>166</b><small>full 3-yr rent history, ranked</small></div>
-  </div>
-
-  <h3><span>1</span> Data &amp; ETL (Power Query)</h3>
-  <p>Loaded Zillow’s national home-value (ZHVI) and rent (ZORI) files from CSV, filtered them to the Dallas–Fort
-  Worth–Arlington metro, and unpivoted each wide monthly series into a long table (ZIP · City · County · Date · Value).
-  ZIP codes are kept as text.</p>
-
-  <h3><span>2</span> Submarket screen, and a deliberate override</h3>
-  <p>The 166 ZIPs with a full 3-year rent history are ranked on gross rental yield and 3-year rent CAGR, combined into a
-  composite weighted 70% yield and 30% growth.</p>
-  <div class="scroll">
-  <table>
-    <tr><th>#</th><th>ZIP</th><th>City</th><th class="num">Price</th><th class="num">Rent/mo</th><th class="num">Yield</th><th class="num">3-yr CAGR</th></tr>
-    <tr><td>1</td><td>75216</td><td>Dallas</td><td class="num">$177,032</td><td class="num">$1,823</td><td class="num">12.4%</td><td class="num">4.5%</td></tr>
-    <tr><td>2</td><td>75215</td><td>Dallas</td><td class="num">$177,515</td><td class="num">$1,621</td><td class="num">11.0%</td><td class="num">3.4%</td></tr>
-    <tr><td>3</td><td>75134</td><td>Lancaster</td><td class="num">$262,549</td><td class="num">$2,251</td><td class="num">10.3%</td><td class="num">5.2%</td></tr>
-    <tr class="pick"><td>4</td><td>76110</td><td>Fort Worth</td><td class="num">$217,756</td><td class="num">$1,744</td><td class="num">9.6%</td><td class="num">6.2%</td></tr>
-    <tr><td>5</td><td>75217</td><td>Dallas</td><td class="num">$201,984</td><td class="num">$1,769</td><td class="num">10.5%</td><td class="num">2.9%</td></tr>
-    <tr><td>6</td><td>75241</td><td>Dallas</td><td class="num">$215,576</td><td class="num">$1,710</td><td class="num">9.5%</td><td class="num">1.8%</td></tr>
-  </table>
-  </div>
-  <p>Ranks #1–#3 are low-cost South Dallas and Lancaster ZIPs posting 10–12% “yields,” the classic profile of
-  distressed-area risk the data can’t see (condition, taxes, tenant and vacancy risk). <b>I stepped past them and selected
-  76110 (rank #4)</b>, which pairs a solid 9.6% yield with the shortlist’s strongest rent growth in a conventional
-  submarket.</p>
-
-  <h3><span>3</span> Underwriting engine</h3>
-  <p>Named inputs drive a 360-month amortization schedule that pays down to $0, and a 10-year pro forma: gross rent →
-  vacancy → effective gross income → five escalating expense lines (tax, insurance, management, maintenance, CapEx reserve)
-  → NOI → debt service → cash flow. The exit applies a terminal cap rate to forward NOI, net of selling costs and the loan
-  payoff.</p>
-
-  <h3><span>4</span> Stress testing</h3>
-  <p>Two live Excel Data Tables flex the result (exit cap × rent growth, and price × mortgage rate), and a Goal Seek solves
-  for the rent that brings Year-1 cash flow to zero.</p>
-
-  <div class="two">
+  <section id="screen">
+    <div class="eyebrow"><b>02</b><i></i>Submarket screen</div>
+    <h2>The top of the list was a <em class="r">yield trap.</em></h2>
+    <p class="sub">Power Query loads Zillow’s ZIP-level home values (ZHVI) and rents (ZORI), filters to the DFW metro and
+    unpivots them into long tables. The data funnel is itself a finding: rent coverage is thinner than price coverage.</p>
+    <div class="funnel">
+      <div class="fstep"><b>254</b><span>ZIPs with home values</span></div><div class="farrow">→</div>
+      <div class="fstep"><b>220</b><span>ZIPs with rents</span></div><div class="farrow">→</div>
+      <div class="fstep"><b>216</b><span>with both</span></div><div class="farrow">→</div>
+      <div class="fstep on"><b>166</b><span>full 3-yr history, ranked</span></div>
+    </div>
+    <p class="sub">Each ZIP is scored 70% on gross rental yield and 30% on 3-year rent growth.</p>
+    <div class="scroll">
     <table>
-      <tr><th colspan="2">Key assumptions</th></tr>
-      <tr><td>Purchase price</td><td><b>$217,756</b></td></tr>
-      <tr><td>Down payment</td><td><b>25% ($54,439)</b></td></tr>
-      <tr><td>Mortgage</td><td><b>7.0% · 30-yr fixed</b></td></tr>
-      <tr><td>Rent (Yr 1)</td><td><b>$1,744 / mo</b></td></tr>
-      <tr><td>Rent growth</td><td><b>3.0% / yr</b></td></tr>
-      <tr><td>Vacancy</td><td><b>5%</b></td></tr>
-      <tr><td>Property tax</td><td><b>2.24%, no homestead</b></td></tr>
-      <tr><td>Insurance</td><td><b>$2,000 / yr *</b></td></tr>
-      <tr><td>Mgmt / Maint / CapEx</td><td><b>8% / 5% / 5%</b></td></tr>
-      <tr><td>Exit cap · Sell cost</td><td><b>5.0% (+70bp vs entry) · 7%</b></td></tr>
+      <tr><th>#</th><th>ZIP</th><th>City</th><th class="num">Price</th><th class="num">Rent/mo</th><th class="num">Yield</th><th class="num">3-yr CAGR</th></tr>
+      <tr><td>1</td><td>75216</td><td>Dallas</td><td class="num">$177,032</td><td class="num">$1,823</td><td class="num">12.4%</td><td class="num">4.5%</td></tr>
+      <tr><td>2</td><td>75215</td><td>Dallas</td><td class="num">$177,515</td><td class="num">$1,621</td><td class="num">11.0%</td><td class="num">3.4%</td></tr>
+      <tr><td>3</td><td>75134</td><td>Lancaster</td><td class="num">$262,549</td><td class="num">$2,251</td><td class="num">10.3%</td><td class="num">5.2%</td></tr>
+      <tr class="pick"><td>4</td><td>76110 <span class="tag">PICK</span></td><td>Fort Worth</td><td class="num">$217,756</td><td class="num">$1,744</td><td class="num">9.6%</td><td class="num">6.2%</td></tr>
+      <tr><td>5</td><td>75217</td><td>Dallas</td><td class="num">$201,984</td><td class="num">$1,769</td><td class="num">10.5%</td><td class="num">2.9%</td></tr>
+      <tr><td>6</td><td>75241</td><td>Dallas</td><td class="num">$215,576</td><td class="num">$1,710</td><td class="num">9.5%</td><td class="num">1.8%</td></tr>
     </table>
-    <table>
-      <tr><th class="red" colspan="2">Results (10-yr, levered)</th></tr>
-      <tr><td>Entry cap rate</td><td><b>4.3%</b></td></tr>
-      <tr><td>Levered IRR</td><td><b>1.1%</b></td></tr>
-      <tr><td>Unlevered IRR</td><td><b>5.0%</b></td></tr>
-      <tr><td>Equity multiple **</td><td><b>1.10x</b></td></tr>
-      <tr><td>Cash-on-cash (Yr 1)</td><td><b>–6.1%</b></td></tr>
-      <tr><td>DSCR (Yr 1 → 10)</td><td><b>0.71 → 0.93</b></td></tr>
-      <tr><td>Yr-1 cash flow</td><td><b>–$3,718</b></td></tr>
-      <tr><td>Cash flow, Yrs 1–10</td><td><b>negative every year</b></td></tr>
-      <tr><td>Net sale proceeds</td><td><b>$92,838</b></td></tr>
-      <tr><td>Breakeven rent</td><td><b>~$2,144 / mo</b></td></tr>
-    </table>
-  </div>
-  <p class="note">* Insurance is a base-case placeholder below Fort Worth market averages (about $5,500/yr for $300K of
-  dwelling coverage). Each additional $1,000/yr lowers the levered IRR by about 5 points, which only strengthens the pass.
-  ** The equity multiple counts the annual cash shortfalls as additional equity invested.</p>
+    </div>
+    <p class="note">Ranks #1–#3 are low-cost South Dallas and Lancaster ZIPs posting 10–12% “yields,” the classic profile of
+    distressed-area risk the data can’t see (condition, taxes, tenant and vacancy risk). I stepped past them and selected
+    76110: a solid 9.6% yield with the shortlist’s strongest rent growth, in a conventional submarket.</p>
+  </section>
 
-  <h2>What the model found</h2>
-  <ul class="find">
-    <li><b>Negative leverage.</b> The asset yields about 4.3% unlevered, but the mortgage costs 7%. Financing a 4.3-cap
-    asset with 7% debt <i>reduces</i> the return: the levered IRR (1.1%) lands well below the unlevered IRR (5.0%).</li>
-    <li><b>DSCR below 1.0 for the entire hold.</b> Coverage runs 0.71 in Year 1 and reaches only 0.93 by Year 10, so NOI
-    never covers the mortgage. Lenders typically require 1.20 or more.</li>
-    <li><b>Negative carry, all ten years.</b> Year-1 cash flow is –$3,718 and is still –$877 in Year 10. The investment
-    depends entirely on appreciation at exit.</li>
-    <li><b>Texas property-tax drag.</b> At the full 2.24% non-homestead rate, Year-1 property tax is $4,878. That is the
-    largest operating expense (46% of OpEx) and equal to about 52% of NOI, and it is the main reason a 9.6% gross yield
-    shrinks to a 4.3% cap rate.</li>
-    <li><b>Conservative exit, same answer.</b> The 5.0% exit cap is 70bp above the 4.3% entry cap. Exiting at the entry
-    cap lifts the levered IRR to only about 5.1%, still well short of an 8% hurdle.</li>
-  </ul>
+  <section id="model">
+    <div class="eyebrow"><b>03</b><i></i>Underwriting engine</div>
+    <h2>A 10-year pro forma on <em>named inputs.</em></h2>
+    <p class="sub">A 360-month amortization schedule (paying down to $0) feeds a pro forma that runs from gross rent to cash
+    flow, with a terminal-cap exit net of selling costs and the loan payoff.</p>
+    <div class="flow">
+      <span class="chip">Gross rent</span><span class="a">→</span><span class="chip">Vacancy</span><span class="a">→</span>
+      <span class="chip">EGI</span><span class="a">→</span><span class="chip">5 expense lines</span><span class="a">→</span>
+      <span class="chip k">NOI</span><span class="a">→</span><span class="chip">Debt service</span><span class="a">→</span>
+      <span class="chip k">Cash flow</span><span class="a">→</span><span class="chip">Cap-rate exit</span><span class="a">→</span>
+      <span class="chip k">IRR · DSCR · CoC</span>
+    </div>
+    <div class="two">
+      <div class="kv"><h4>Key assumptions</h4>
+        <table>
+          <tr><td>Purchase price</td><td>$217,756</td></tr>
+          <tr><td>Down payment</td><td>25% ($54,439)</td></tr>
+          <tr><td>Mortgage</td><td>7.0% · 30-yr fixed</td></tr>
+          <tr><td>Rent (Yr 1)</td><td>$1,744 / mo</td></tr>
+          <tr><td>Rent growth</td><td>3.0% / yr</td></tr>
+          <tr><td>Vacancy</td><td>5%</td></tr>
+          <tr><td>Property tax</td><td>2.24%, no homestead</td></tr>
+          <tr><td>Insurance</td><td>$2,000 / yr *</td></tr>
+          <tr><td>Mgmt / Maint / CapEx</td><td>8% / 5% / 5%</td></tr>
+          <tr><td>Exit cap · Sell cost</td><td>5.0% (+70bp vs entry) · 7%</td></tr>
+        </table></div>
+      <div class="kv r"><h4>Results (10-yr, levered)</h4>
+        <table>
+          <tr><td>Entry cap rate</td><td>4.3%</td></tr>
+          <tr><td>Levered IRR</td><td class="neg">1.1%</td></tr>
+          <tr><td>Unlevered IRR</td><td>5.0%</td></tr>
+          <tr><td>Equity multiple **</td><td>1.10x</td></tr>
+          <tr><td>Cash-on-cash (Yr 1)</td><td class="neg">–6.1%</td></tr>
+          <tr><td>DSCR (Yr 1 → 10)</td><td class="neg">0.71 → 0.93</td></tr>
+          <tr><td>Yr-1 cash flow</td><td class="neg">–$3,718</td></tr>
+          <tr><td>Cash flow, Yrs 1–10</td><td class="neg">negative every year</td></tr>
+          <tr><td>Net sale proceeds</td><td>$92,838</td></tr>
+          <tr><td>Breakeven rent</td><td>~$2,144 / mo</td></tr>
+        </table></div>
+    </div>
+    <p class="note">* Insurance is a base-case placeholder below Fort Worth market averages (about $5,500/yr for $300K of
+    dwelling coverage). Each additional $1,000/yr lowers levered IRR by about 5 points, which only strengthens the pass.
+    ** The equity multiple counts the annual cash shortfalls as additional equity invested.</p>
+  </section>
 
-  <h3>Levered IRR sensitivity: purchase price × mortgage rate</h3>
-  <div class="scroll">
-  <table class="grid">
-    <tr><th>Price ↓ &nbsp; Rate →</th><th>5%</th><th>6%</th><th>7%</th><th>8%</th><th>9%</th></tr>
-    <tr><td class="p">$185,093</td><td class="g">13.3%</td><td class="g">11.7%</td><td class="g">10.0%</td><td class="g">8.4%</td><td class="a">6.7%</td></tr>
-    <tr><td class="p">$195,980</td><td class="g">10.6%</td><td class="g">8.9%</td><td class="a">7.2%</td><td class="a">5.4%</td><td class="a">3.6%</td></tr>
-    <tr><td class="p">$206,868</td><td class="a">7.9%</td><td class="a">6.1%</td><td class="a">4.2%</td><td class="a">2.3%</td><td class="a">0.3%</td></tr>
-    <tr><td class="p">$217,756</td><td class="a">5.1%</td><td class="a">3.1%</td><td class="base">1.1%</td><td class="n">–1.1%</td><td class="n">–3.3%</td></tr>
-    <tr><td class="p">$228,644</td><td class="a">2.2%</td><td class="a">0.0%</td><td class="n">–2.3%</td><td class="n">–4.7%</td><td class="n">–7.3%</td></tr>
-    <tr><td class="p">$239,532</td><td class="n">–0.9%</td><td class="n">–3.5%</td><td class="n">–6.1%</td><td class="n">–9.0%</td><td class="n">–12.0%</td></tr>
-  </table>
-  </div>
-  <p class="note">Base case (red): $217,756 at 7% = 1.1% levered IRR. Green cells clear an 8% levered hurdle (my target for
-  a leveraged single-family rental); amber is positive but below the hurdle; pink is negative.</p>
+  <section id="sensitivity">
+    <div class="eyebrow"><b>04</b><i></i>Stress testing</div>
+    <h2>What would have to be true <em>for it to work.</em></h2>
+    <p class="sub">Two live Excel Data Tables flex the result (exit cap × rent growth, and price × mortgage rate), and a Goal
+    Seek solves for breakeven rent. Against an 8% levered hurdle, the deal works only at a 10–15% lower price.</p>
+    <div class="panel">
+      <div class="panel-h"><b>Levered IRR: purchase price × mortgage rate</b><span>10-year hold</span></div>
+      <div class="scroll">
+      <table class="grid">
+        <tr><th>Price ↓ · Rate →</th><th>5%</th><th>6%</th><th>7%</th><th>8%</th><th>9%</th></tr>
+        <tr><td>$185,093</td><td class="g">13.3%</td><td class="g">11.7%</td><td class="g">10.0%</td><td class="g">8.4%</td><td class="a">6.7%</td></tr>
+        <tr><td>$195,980</td><td class="g">10.6%</td><td class="g">8.9%</td><td class="a">7.2%</td><td class="a">5.4%</td><td class="a">3.6%</td></tr>
+        <tr><td>$206,868</td><td class="a">7.9%</td><td class="a">6.1%</td><td class="a">4.2%</td><td class="a">2.3%</td><td class="a">0.3%</td></tr>
+        <tr><td>$217,756</td><td class="a">5.1%</td><td class="a">3.1%</td><td class="base">1.1%</td><td class="n">–1.1%</td><td class="n">–3.3%</td></tr>
+        <tr><td>$228,644</td><td class="a">2.2%</td><td class="a">0.0%</td><td class="n">–2.3%</td><td class="n">–4.7%</td><td class="n">–7.3%</td></tr>
+        <tr><td>$239,532</td><td class="n">–0.9%</td><td class="n">–3.5%</td><td class="n">–6.1%</td><td class="n">–9.0%</td><td class="n">–12.0%</td></tr>
+      </table>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--red)"></i>Base case: $217,756 at 7%</span>
+        <span><i style="background:rgba(76,195,138,.45)"></i>Clears 8% hurdle</span>
+        <span><i style="background:rgba(242,181,68,.35)"></i>Positive, below hurdle</span>
+        <span><i style="background:rgba(240,96,90,.35)"></i>Negative</span>
+      </div>
+    </div>
+  </section>
 
-  <h2>Conclusion</h2>
-  <p><b>Pass at 7%.</b> 76110 is the strongest conventional value the screen surfaced in DFW, and it still doesn’t clear
-  the bar. At today’s price and rate it delivers roughly a 1% IRR, below risk-free Treasuries, in exchange for leverage,
-  tenant and vacancy risk, illiquidity, and a decade of out-of-pocket carry. Against an 8% levered hurdle, it becomes worth
-  revisiting only if the price falls to about $185K (–15%) at a 7% mortgage, or to about $196K (–10%) if rates ease to
-  5–6%. The value of the exercise isn’t a buy recommendation; it is a disciplined, evidence-backed pass.</p>
+  <section id="verdict">
+    <div class="eyebrow"><b>05</b><i></i>Verdict</div>
+    <h2><em class="r">Pass at 7%.</em> A disciplined, evidence-backed no.</h2>
+    <div class="verdict-box">
+      <p>76110 is the strongest conventional value the screen surfaced in DFW, and it still doesn’t clear the bar. At today’s
+      price and rate it delivers roughly a 1% IRR, below risk-free Treasuries, in exchange for leverage, tenant and vacancy
+      risk, illiquidity, and a decade of out-of-pocket carry.</p>
+      <p>Against an 8% levered hurdle, it becomes worth revisiting only if the price falls to <b>~$185K (–15%) at a 7%
+      mortgage</b>, or to <b>~$196K (–10%) if rates ease to 5–6%</b>.</p>
+    </div>
+    <ul class="dem">
+      <li><b>End-to-end build</b>Raw public data → automated ETL → quantitative screen → underwriting model → stress testing → a written recommendation, in one workbook.</li>
+      <li><b>Return math</b>Cap rate, NOI, DSCR, cash-on-cash, levered and unlevered IRR, and equity multiple.</li>
+      <li><b>Judgment over mechanics</b>Spotting a yield trap, using 3% forward rent growth instead of the recent 6.2% spike, and reaching an honest pass.</li>
+    </ul>
+  </section>
 
-  <h2>What this project demonstrates</h2>
-  <ul class="find">
-    <li><b>End-to-end build.</b> Raw public data → automated ETL → quantitative screen → full underwriting model → stress
-    testing → a written recommendation, all in one workbook.</li>
-    <li><b>Return math.</b> Cap rate, NOI, DSCR, cash-on-cash, levered and unlevered IRR, and equity multiple.</li>
-    <li><b>Judgment over mechanics.</b> Spotting a yield trap in the screen, using a forward rent-growth assumption (3%)
-    instead of the recent 6.2% spike, and reaching an honest “pass” rather than forcing a positive number.</li>
-  </ul>
+  <section id="downloads">
+    <div class="eyebrow"><b>06</b><i></i>Downloads</div>
+    <h2>Files</h2>
+    <div class="dl">
+      <a href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.xlsx"><small>EXCEL</small>Underwriting model<br><span>Screen, assumptions, sensitivity tables, amortization, pro forma, Zillow data</span></a>
+      <a href="https://github.com/ajaaypatil0108/dfw-rental-underwriting/raw/main/DFW_Rental_Underwriting_Model.pdf"><small>PDF</small>Case study<br><span>3-page write-up: method, results and recommendation</span></a>
+      <a href="https://github.com/ajaaypatil0108/dfw-rental-underwriting"><small>GITHUB</small>Repository<br><span>All files and the README</span></a>
+    </div>
+  </section>
 
   <footer>
-    <p>Data: <a href="https://www.zillow.com/research/data/">Zillow Research</a> ZHVI (home values) and ZORI (rents, all
-    rental types), ZIP level, June 2026. Property-tax rate checked against
+    <p>Data: <a href="https://www.zillow.com/research/data/">Zillow Research</a> ZHVI (home values) and ZORI (rents, all rental
+    types), ZIP level, June 2026. Property-tax rate checked against
     <a href="https://el8.tad.org/content/rates/2024TaxRates.pdf">Tarrant Appraisal District</a> rates.</p>
-    <p>Ajay Patil · MS Finance, The University of Texas at Dallas ·
-    <a href="https://github.com/ajaaypatil0108/dfw-rental-underwriting">Repository</a></p>
+    <p>Ajay Patil · MS Finance, The University of Texas at Dallas</p>
     <p><i>Educational portfolio project, not investment advice.</i></p>
   </footer>
 </main>
+
+<script>
+(function () {
+  var data = [-3718, -3438, -3150, -2854, -2548, -2234, -1909, -1576, -1232, -877];
+  var svg = document.querySelector('#cf svg'), tip = document.getElementById('tip'), ns = 'http://www.w3.org/2000/svg';
+  var W = 960, L = 64, R = 16, T = 34, B = 34, H = 300, min = -4000;
+  var plotW = W - L - R, plotH = H - T - B, y0 = T, y = function (v) { return T + (v / min) * plotH; };
+  function el(n, a, t) { var e = document.createElementNS(ns, n); for (var k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; svg.appendChild(e); return e; }
+  [0, -1000, -2000, -3000, -4000].forEach(function (v) {
+    el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: v === 0 ? '#3a464b' : '#20292c', 'stroke-width': 1 });
+    el('text', { x: L - 10, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 12, fill: '#6E7B7D' }, v === 0 ? '$0' : '–$' + (-v / 1000) + 'K');
+  });
+  var step = plotW / data.length, bw = Math.min(52, step - 14);
+  data.forEach(function (v, i) {
+    var x = L + i * step + (step - bw) / 2, h = y(v) - y0, r = 4;
+    var d = 'M' + x + ',' + y0 + 'H' + (x + bw) + 'V' + (y0 + h - r) + 'Q' + (x + bw) + ',' + (y0 + h) + ' ' + (x + bw - r) + ',' + (y0 + h) +
+            'H' + (x + r) + 'Q' + x + ',' + (y0 + h) + ' ' + x + ',' + (y0 + h - r) + 'Z';
+    var p = el('path', { d: d, 'class': 'bar' });
+    el('text', { x: x + bw / 2, y: H - 10, 'text-anchor': 'middle', 'font-size': 12, fill: '#98A5A6' }, 'Yr ' + (i + 1));
+    if (i === 0 || i === data.length - 1)
+      el('text', { x: x + bw / 2, y: y(v) + 18, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#EDF2F0' }, '–$' + (-v).toLocaleString());
+    var hit = el('rect', { x: L + i * step, y: T, width: step, height: plotH, fill: 'transparent' });
+    hit.addEventListener('mousemove', function (e) {
+      p.classList.add('on');
+      var box = svg.parentNode.getBoundingClientRect();
+      tip.innerHTML = 'Year ' + (i + 1) + '<b>–$' + (-v).toLocaleString() + '</b>';
+      tip.style.left = Math.min(e.clientX - box.left + 12, box.width - 110) + 'px';
+      tip.style.top = (e.clientY - box.top - 10) + 'px'; tip.style.opacity = 1;
+    });
+    hit.addEventListener('mouseleave', function () { p.classList.remove('on'); tip.style.opacity = 0; });
+  });
+})();
+</script>
 </body>
 </html>
